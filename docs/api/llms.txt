@@ -1,0 +1,17 @@
+# Prime Property client API
+
+API base: https://primeproperty.cfd/api/v1
+OpenAPI 3.1: https://primeproperty.cfd/api/docs/openapi.json
+Human API docs: https://primeproperty.cfd/api/docs
+Guest frontend flow: https://primeproperty.cfd/api/docs/guest-flow
+Guest flow Markdown: https://primeproperty.cfd/api/docs/guest-flow.md
+Guest flow JSON: https://primeproperty.cfd/api/docs/guest-flow.json
+Language discovery: https://primeproperty.cfd/api/v1/languages
+
+Authentication uses `Authorization: Bearer <token>`. Tokens have the `client` ability, are named per device, and expire after 30 days. Web-session login behavior and `LoginResponse` are not part of this API.
+
+Only properties with `property_details.status=active` are visible from v1, including related, suggested, home, map, favorite, and enquiry operations. Articles must be published. Invalid supplied bearer tokens receive 401 even on optionally authenticated endpoints.
+
+Supported locales are en, my, th, and zh. Supported layouts are guest and guest_v2. Translation dictionaries fill missing keys from English and report those missing keys in metadata.
+
+The `/` web route renders the Livewire `HomePage`. `resources/views/welcome.blade.php` is unused starter markup. Existing bot, Telegram, tag-search, map-bounds, and web authentication routes are operational but outside the public v1 contract.

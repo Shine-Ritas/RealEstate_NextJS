@@ -1,0 +1,7 @@
+.next
+coverage
+node_modules
+package-lock.json
+src/lib/api/generated/schema.ts
+docs/api/openapi.json
+docs/api/openapi.codegen.json

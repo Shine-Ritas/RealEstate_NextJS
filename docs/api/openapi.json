@@ -1,0 +1,3383 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "Prime Property Third-Party Frontend API",
+        "version": "1.0.0",
+        "description": "Versioned JSON API for guest discovery and client account flows. Property responses are active-only; article responses are published-only. Single resources use data, pagination uses data/links/meta, and errors use message/code/errors."
+    },
+    "jsonSchemaDialect": "https://json-schema.org/draft/2020-12/schema",
+    "servers": [
+        {
+            "url": "https://primeproperty.cfd/api/v1",
+            "description": "Current deployment"
+        }
+    ],
+    "tags": [
+        {
+            "name": "Service",
+            "description": "Service discovery, app shell, and home content."
+        },
+        {
+            "name": "Properties",
+            "description": "Active property search, detail, map, views, and enquiries."
+        },
+        {
+            "name": "Locations",
+            "description": "Validated hierarchical location options."
+        },
+        {
+            "name": "Articles",
+            "description": "Published editorial content and deduplicated views."
+        },
+        {
+            "name": "Content",
+            "description": "Legal content and translation dictionaries."
+        },
+        {
+            "name": "Chat",
+            "description": "Structured, rate-limited property assistant."
+        },
+        {
+            "name": "Authentication",
+            "description": "Thirty-day per-device bearer token lifecycle."
+        },
+        {
+            "name": "Profile",
+            "description": "Authenticated account and avatar operations."
+        },
+        {
+            "name": "Favorites",
+            "description": "Authenticated active-property shortlist."
+        },
+        {
+            "name": "Newsletter",
+            "description": "Authenticated account-email subscription."
+        }
+    ],
+    "paths": {
+        "/": {
+            "get": {
+                "tags": [
+                    "Service"
+                ],
+                "summary": "Discover the v1 service",
+                "operationId": "serviceIndex",
+                "x-laravel-route-name": "api.v1.index",
+                "responses": {
+                    "200": {
+                        "description": "Version and documentation links",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServiceEnvelope"
+                                },
+                                "example": {
+                                    "data": {
+                                        "name": "Prime Property",
+                                        "api_version": "1.0.0",
+                                        "base_url": "https://example.com/api/v1",
+                                        "documentation": {
+                                            "html": "https://example.com/api/docs",
+                                            "openapi": "https://example.com/api/docs/openapi.json"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/bootstrap": {
+            "get": {
+                "tags": [
+                    "Service"
+                ],
+                "summary": "Load the client application shell",
+                "description": "Returns metadata, features, locale/layout choices, navigation, footer contacts, and bearer-token rules.",
+                "operationId": "getBootstrap",
+                "x-laravel-route-name": "api.v1.bootstrap",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/Locale"
+                    },
+                    {
+                        "$ref": "#/components/parameters/Layout"
+                    }
+                ],
+                "security": [
+                    [],
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Application shell",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BootstrapEnvelope"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    }
+                }
+            }
+        },
+        "/home": {
+            "get": {
+                "tags": [
+                    "Service"
+                ],
+                "summary": "Load home discovery content",
+                "description": "Returns hero/CTA/location media, testimonials, top agents, and layout-aware active-only curated property sections.",
+                "operationId": "getHome",
+                "x-laravel-route-name": "api.v1.home",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/Locale"
+                    },
+                    {
+                        "$ref": "#/components/parameters/Layout"
+                    }
+                ],
+                "security": [
+                    [],
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Home content",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HomeEnvelope"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    }
+                }
+            }
+        },
+        "/properties": {
+            "get": {
+                "tags": [
+                    "Properties"
+                ],
+                "summary": "Search active properties",
+                "description": "Preserves the Livewire residential-default and quick-budget behavior. Facilities use AND semantics.",
+                "operationId": "listProperties",
+                "x-laravel-route-name": "api.v1.properties.index",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/Locale"
+                    },
+                    {
+                        "$ref": "#/components/parameters/Q"
+                    },
+                    {
+                        "$ref": "#/components/parameters/ListingType"
+                    },
+                    {
+                        "$ref": "#/components/parameters/PropertyType"
+                    },
+                    {
+                        "$ref": "#/components/parameters/ProjectStatus"
+                    },
+                    {
+                        "$ref": "#/components/parameters/ProvinceCode"
+                    },
+                    {
+                        "$ref": "#/components/parameters/DistrictCode"
+                    },
+                    {
+                        "$ref": "#/components/parameters/SubdistrictCode"
+                    },
+                    {
+                        "$ref": "#/components/parameters/MinPrice"
+                    },
+                    {
+                        "$ref": "#/components/parameters/MaxPrice"
+                    },
+                    {
+                        "$ref": "#/components/parameters/MinBedrooms"
+                    },
+                    {
+                        "$ref": "#/components/parameters/MinBathrooms"
+                    },
+                    {
+                        "$ref": "#/components/parameters/FacilityIds"
+                    },
+                    {
+                        "$ref": "#/components/parameters/QuickResidential"
+                    },
+                    {
+                        "$ref": "#/components/parameters/QuickNearSchool"
+                    },
+                    {
+                        "$ref": "#/components/parameters/QuickBudget"
+                    },
+                    {
+                        "$ref": "#/components/parameters/QuickCondominium"
+                    },
+                    {
+                        "$ref": "#/components/parameters/QuickSustainable"
+                    },
+                    {
+                        "$ref": "#/components/parameters/QuickPetFriendly"
+                    },
+                    {
+                        "$ref": "#/components/parameters/Sort"
+                    },
+                    {
+                        "$ref": "#/components/parameters/Page"
+                    },
+                    {
+                        "$ref": "#/components/parameters/PerPage"
+                    }
+                ],
+                "security": [
+                    [],
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Paginated active properties",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PropertyPage"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationFailed"
+                    }
+                }
+            }
+        },
+        "/properties/options": {
+            "get": {
+                "tags": [
+                    "Properties"
+                ],
+                "summary": "Get property filter options",
+                "operationId": "getPropertyOptions",
+                "x-laravel-route-name": "api.v1.properties.options",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/Locale"
+                    }
+                ],
+                "security": [
+                    [],
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Locale-aware enum, facility, sort, and quick-budget options",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GenericDataEnvelope"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    }
+                }
+            }
+        },
+        "/properties/map": {
+            "get": {
+                "tags": [
+                    "Properties"
+                ],
+                "summary": "Get active property map markers",
+                "description": "Accepts all catalog filters plus optional viewport bounds and returns at most 500 markers.",
+                "operationId": "getPropertyMap",
+                "x-laravel-route-name": "api.v1.properties.map",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/Locale"
+                    },
+                    {
+                        "$ref": "#/components/parameters/Q"
+                    },
+                    {
+                        "$ref": "#/components/parameters/ListingType"
+                    },
+                    {
+                        "$ref": "#/components/parameters/PropertyType"
+                    },
+                    {
+                        "$ref": "#/components/parameters/ProjectStatus"
+                    },
+                    {
+                        "$ref": "#/components/parameters/ProvinceCode"
+                    },
+                    {
+                        "$ref": "#/components/parameters/DistrictCode"
+                    },
+                    {
+                        "$ref": "#/components/parameters/SubdistrictCode"
+                    },
+                    {
+                        "$ref": "#/components/parameters/MinPrice"
+                    },
+                    {
+                        "$ref": "#/components/parameters/MaxPrice"
+                    },
+                    {
+                        "$ref": "#/components/parameters/MinBedrooms"
+                    },
+                    {
+                        "$ref": "#/components/parameters/MinBathrooms"
+                    },
+                    {
+                        "$ref": "#/components/parameters/FacilityIds"
+                    },
+                    {
+                        "$ref": "#/components/parameters/QuickResidential"
+                    },
+                    {
+                        "$ref": "#/components/parameters/QuickNearSchool"
+                    },
+                    {
+                        "$ref": "#/components/parameters/QuickBudget"
+                    },
+                    {
+                        "$ref": "#/components/parameters/QuickCondominium"
+                    },
+                    {
+                        "$ref": "#/components/parameters/QuickSustainable"
+                    },
+                    {
+                        "$ref": "#/components/parameters/QuickPetFriendly"
+                    },
+                    {
+                        "$ref": "#/components/parameters/Sort"
+                    },
+                    {
+                        "name": "north",
+                        "in": "query",
+                        "schema": {
+                            "type": "number",
+                            "minimum": -90,
+                            "maximum": 90
+                        }
+                    },
+                    {
+                        "name": "south",
+                        "in": "query",
+                        "schema": {
+                            "type": "number",
+                            "minimum": -90,
+                            "maximum": 90
+                        }
+                    },
+                    {
+                        "name": "east",
+                        "in": "query",
+                        "schema": {
+                            "type": "number",
+                            "minimum": -180,
+                            "maximum": 180
+                        }
+                    },
+                    {
+                        "name": "west",
+                        "in": "query",
+                        "schema": {
+                            "type": "number",
+                            "minimum": -180,
+                            "maximum": 180
+                        }
+                    }
+                ],
+                "security": [
+                    [],
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Map markers",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "data"
+                                    ],
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/PropertyMarker"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationFailed"
+                    }
+                }
+            }
+        },
+        "/properties/{slug}": {
+            "get": {
+                "tags": [
+                    "Properties"
+                ],
+                "summary": "Get an active property detail",
+                "operationId": "getProperty",
+                "x-laravel-route-name": "api.v1.properties.show",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/Slug"
+                    },
+                    {
+                        "$ref": "#/components/parameters/Locale"
+                    }
+                ],
+                "security": [
+                    [],
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Property detail, SEO, project units, agents, facilities, nearby locations, related properties and articles",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "data"
+                                    ],
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/PropertyDetail"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    }
+                }
+            }
+        },
+        "/properties/{slug}/views": {
+            "post": {
+                "tags": [
+                    "Properties"
+                ],
+                "summary": "Record a deduplicated non-bot property view",
+                "operationId": "recordPropertyView",
+                "x-laravel-route-name": "api.v1.properties.views.store",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/Slug"
+                    }
+                ],
+                "security": [
+                    [],
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Whether the view was recorded and current count",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ViewResultEnvelope"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    }
+                }
+            }
+        },
+        "/properties/{slug}/enquiries": {
+            "post": {
+                "tags": [
+                    "Properties"
+                ],
+                "summary": "Create a property enquiry",
+                "description": "Persists an API-source enquiry against an active property. Limited to five attempts per minute per IP.",
+                "operationId": "createPropertyEnquiry",
+                "x-laravel-route-name": "api.v1.properties.enquiries.store",
+                "x-rate-limit": {
+                    "limit": 5,
+                    "window": "1 minute",
+                    "key": "IP"
+                },
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/Slug"
+                    }
+                ],
+                "security": [
+                    [],
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/EnquiryInput"
+                            },
+                            "example": {
+                                "name": "Narin S.",
+                                "email": "narin@example.com",
+                                "phone": "+66 80 000 0000",
+                                "message": "Please arrange a weekend viewing."
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Enquiry created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GenericDataEnvelope"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationFailed"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/RateLimited"
+                    }
+                }
+            }
+        },
+        "/locations/provinces": {
+            "get": {
+                "tags": [
+                    "Locations"
+                ],
+                "summary": "List provinces",
+                "operationId": "listProvinces",
+                "x-laravel-route-name": "api.v1.locations.provinces",
+                "responses": {
+                    "200": {
+                        "description": "Province options",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/LocationListEnvelope"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/locations/provinces/{code}/districts": {
+            "get": {
+                "tags": [
+                    "Locations"
+                ],
+                "summary": "List districts belonging to a province",
+                "operationId": "listDistricts",
+                "x-laravel-route-name": "api.v1.locations.districts",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/Code"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "District options for the parent province",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/LocationListEnvelope"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    }
+                }
+            }
+        },
+        "/locations/districts/{code}/subdistricts": {
+            "get": {
+                "tags": [
+                    "Locations"
+                ],
+                "summary": "List subdistricts belonging to a district",
+                "operationId": "listSubdistricts",
+                "x-laravel-route-name": "api.v1.locations.subdistricts",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/Code"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Subdistrict options for the parent district",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/LocationListEnvelope"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    }
+                }
+            }
+        },
+        "/articles": {
+            "get": {
+                "tags": [
+                    "Articles"
+                ],
+                "summary": "List published articles",
+                "operationId": "listArticles",
+                "x-laravel-route-name": "api.v1.articles.index",
+                "parameters": [
+                    {
+                        "name": "tag",
+                        "in": "query",
+                        "description": "Published article tag slug",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "$ref": "#/components/parameters/Page"
+                    },
+                    {
+                        "$ref": "#/components/parameters/PerPage"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Paginated published articles",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ArticlePage"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationFailed"
+                    }
+                }
+            }
+        },
+        "/articles/{slug}": {
+            "get": {
+                "tags": [
+                    "Articles"
+                ],
+                "summary": "Get a published article",
+                "operationId": "getArticle",
+                "x-laravel-route-name": "api.v1.articles.show",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/Slug"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Article content, popular readings, more articles, and suggested active properties",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "data"
+                                    ],
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/ArticleDetail"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    }
+                }
+            }
+        },
+        "/article-tags": {
+            "get": {
+                "tags": [
+                    "Articles"
+                ],
+                "summary": "List tags used by published articles",
+                "operationId": "listArticleTags",
+                "x-laravel-route-name": "api.v1.article-tags.index",
+                "responses": {
+                    "200": {
+                        "description": "Published tag options with article counts",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GenericDataEnvelope"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/articles/{slug}/views": {
+            "post": {
+                "tags": [
+                    "Articles"
+                ],
+                "summary": "Record a deduplicated non-bot article view",
+                "operationId": "recordArticleView",
+                "x-laravel-route-name": "api.v1.articles.views.store",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/Slug"
+                    }
+                ],
+                "security": [
+                    [],
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Whether the view was recorded and current count",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ViewResultEnvelope"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    }
+                }
+            }
+        },
+        "/legal/privacy-policy": {
+            "get": {
+                "tags": [
+                    "Content"
+                ],
+                "summary": "Get privacy policy content",
+                "operationId": "getPrivacyPolicy",
+                "x-laravel-route-name": "api.v1.legal.privacy",
+                "responses": {
+                    "200": {
+                        "description": "Source content, detected format, rendered HTML, and update timestamp",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/LegalEnvelope"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/legal/terms-and-conditions": {
+            "get": {
+                "tags": [
+                    "Content"
+                ],
+                "summary": "Get terms and conditions content",
+                "operationId": "getTerms",
+                "x-laravel-route-name": "api.v1.legal.terms",
+                "responses": {
+                    "200": {
+                        "description": "Source content, detected format, rendered HTML, and update timestamp",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/LegalEnvelope"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/languages": {
+            "get": {
+                "tags": [
+                    "Content"
+                ],
+                "summary": "Discover supported locales and layouts",
+                "operationId": "listLanguages",
+                "x-laravel-route-name": "api.v1.languages.index",
+                "responses": {
+                    "200": {
+                        "description": "en, my, th, zh locale metadata and guest/guest_v2 layouts",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GenericDataEnvelope"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/languages/{locale}": {
+            "get": {
+                "tags": [
+                    "Content"
+                ],
+                "summary": "Get a fallback-complete translation dictionary",
+                "operationId": "getLanguage",
+                "x-laravel-route-name": "api.v1.languages.show",
+                "parameters": [
+                    {
+                        "name": "locale",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "en",
+                                "my",
+                                "th",
+                                "zh"
+                            ]
+                        }
+                    },
+                    {
+                        "$ref": "#/components/parameters/Layout"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Dictionary with English fallback and missing-key metadata",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/LanguageEnvelope"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationFailed"
+                    }
+                }
+            }
+        },
+        "/chat": {
+            "post": {
+                "tags": [
+                    "Chat"
+                ],
+                "summary": "Ask the structured property assistant",
+                "description": "Returns text, property, location, subdistrict, or agent results without Blade HTML. Limited to eight questions per hour by user or IP/user-agent.",
+                "operationId": "chat",
+                "x-laravel-route-name": "api.v1.chat.store",
+                "x-rate-limit": {
+                    "limit": 8,
+                    "window": "1 hour",
+                    "key": "user or IP/user-agent"
+                },
+                "security": [
+                    [],
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ChatInput"
+                            },
+                            "example": {
+                                "message": "Show me two-bedroom condos in Bang Na under 10 million baht",
+                                "conversation": [
+                                    {
+                                        "type": "user",
+                                        "text": "I prefer Bangkok"
+                                    },
+                                    {
+                                        "type": "assistant",
+                                        "text": "Which area?"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Typed assistant result",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ChatEnvelope"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationFailed"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/RateLimited"
+                    },
+                    "503": {
+                        "description": "AI or backing service unavailable",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/register": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Register and issue a device token",
+                "operationId": "register",
+                "x-laravel-route-name": "api.v1.auth.register",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RegisterInput"
+                            },
+                            "example": {
+                                "name": "Narin S.",
+                                "email": "narin@example.com",
+                                "password": "secure-password",
+                                "password_confirmation": "secure-password",
+                                "device_name": "Narin iPhone"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "User, verification state, and 30-day token",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AuthEnvelope"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationFailed"
+                    }
+                }
+            }
+        },
+        "/auth/login": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Login and issue a device token",
+                "operationId": "login",
+                "x-laravel-route-name": "api.v1.auth.login",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/LoginInput"
+                            },
+                            "example": {
+                                "email": "narin@example.com",
+                                "password": "secure-password",
+                                "device_name": "Narin iPhone"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "User and 30-day token",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AuthEnvelope"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationFailed"
+                    }
+                }
+            }
+        },
+        "/auth/google": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Exchange a Google OAuth access token",
+                "description": "Uses Socialite stateless userFromToken exchange and returns a client token.",
+                "operationId": "googleLogin",
+                "x-laravel-route-name": "api.v1.auth.google",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "access_token",
+                                    "device_name"
+                                ],
+                                "properties": {
+                                    "access_token": {
+                                        "type": "string"
+                                    },
+                                    "device_name": {
+                                        "type": "string",
+                                        "maxLength": 120
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "User and 30-day token",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AuthEnvelope"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationFailed"
+                    }
+                }
+            }
+        },
+        "/auth/forgot-password": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Queue an API password reset email",
+                "description": "Always returns a neutral accepted response to prevent account enumeration.",
+                "operationId": "forgotPassword",
+                "x-laravel-route-name": "api.v1.auth.forgot-password",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "email"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "202": {
+                        "description": "Reset request accepted",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GenericDataEnvelope"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationFailed"
+                    }
+                }
+            }
+        },
+        "/auth/reset-password": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Reset a password and revoke all tokens",
+                "operationId": "resetPassword",
+                "x-laravel-route-name": "api.v1.auth.reset-password",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "token",
+                                    "email",
+                                    "password",
+                                    "password_confirmation"
+                                ],
+                                "properties": {
+                                    "token": {
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password"
+                                    },
+                                    "password_confirmation": {
+                                        "type": "string",
+                                        "format": "password"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Password reset; fresh login required",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GenericDataEnvelope"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationFailed"
+                    }
+                }
+            }
+        },
+        "/auth/email/verify": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Verify email with a six-digit code",
+                "operationId": "verifyEmail",
+                "x-laravel-route-name": "api.v1.auth.email.verify",
+                "security": [
+                    {
+                        "bearerAuth": [
+                            "client"
+                        ]
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "code"
+                                ],
+                                "properties": {
+                                    "code": {
+                                        "type": "string",
+                                        "pattern": "^[0-9]{6}$",
+                                        "example": "123456"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Verified user",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UserEnvelope"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationFailed"
+                    }
+                }
+            }
+        },
+        "/auth/email/resend": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Resend a six-digit verification code",
+                "operationId": "resendVerification",
+                "x-laravel-route-name": "api.v1.auth.email.resend",
+                "x-rate-limit": {
+                    "limit": 6,
+                    "window": "1 minute"
+                },
+                "security": [
+                    {
+                        "bearerAuth": [
+                            "client"
+                        ]
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Verification notification queued",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GenericDataEnvelope"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/RateLimited"
+                    }
+                }
+            }
+        },
+        "/auth/token": {
+            "delete": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Revoke the current bearer token",
+                "operationId": "logoutCurrentDevice",
+                "x-laravel-route-name": "api.v1.auth.token.destroy",
+                "security": [
+                    {
+                        "bearerAuth": [
+                            "client"
+                        ]
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Current token revoked",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GenericDataEnvelope"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    }
+                }
+            }
+        },
+        "/auth/tokens": {
+            "delete": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Revoke every bearer token",
+                "operationId": "logoutAllDevices",
+                "x-laravel-route-name": "api.v1.auth.tokens.destroy",
+                "security": [
+                    {
+                        "bearerAuth": [
+                            "client"
+                        ]
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "All tokens revoked",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GenericDataEnvelope"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    }
+                }
+            }
+        },
+        "/me": {
+            "get": {
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "Get the current user",
+                "operationId": "getProfile",
+                "x-laravel-route-name": "api.v1.me.show",
+                "security": [
+                    {
+                        "bearerAuth": [
+                            "client"
+                        ]
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Current user",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UserEnvelope"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    }
+                }
+            },
+            "patch": {
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "Update name or email",
+                "description": "An email change clears verification and queues a new code.",
+                "operationId": "updateProfile",
+                "x-laravel-route-name": "api.v1.me.update",
+                "security": [
+                    {
+                        "bearerAuth": [
+                            "client"
+                        ]
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "minProperties": 1,
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "minLength": 2,
+                                        "maxLength": 255
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email"
+                                    }
+                                }
+                            },
+                            "example": {
+                                "name": "Narin Somchai"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Updated user",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UserEnvelope"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationFailed"
+                    }
+                }
+            }
+        },
+        "/me/avatar": {
+            "post": {
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "Upload an avatar",
+                "operationId": "uploadAvatar",
+                "x-laravel-route-name": "api.v1.me.avatar.store",
+                "security": [
+                    {
+                        "bearerAuth": [
+                            "client"
+                        ]
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "avatar"
+                                ],
+                                "properties": {
+                                    "avatar": {
+                                        "type": "string",
+                                        "format": "binary",
+                                        "description": "Image up to 2 MB and 5000x5000 pixels."
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Updated user with absolute avatar URL",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UserEnvelope"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationFailed"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "Remove the avatar",
+                "operationId": "deleteAvatar",
+                "x-laravel-route-name": "api.v1.me.avatar.destroy",
+                "security": [
+                    {
+                        "bearerAuth": [
+                            "client"
+                        ]
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Avatar removed",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GenericDataEnvelope"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    }
+                }
+            }
+        },
+        "/favorites": {
+            "get": {
+                "tags": [
+                    "Favorites"
+                ],
+                "summary": "List favorite active properties",
+                "operationId": "listFavorites",
+                "x-laravel-route-name": "api.v1.favorites.index",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/Page"
+                    },
+                    {
+                        "$ref": "#/components/parameters/PerPage"
+                    }
+                ],
+                "security": [
+                    {
+                        "bearerAuth": [
+                            "client"
+                        ]
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Paginated active favorites",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PropertyPage"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    }
+                }
+            }
+        },
+        "/favorites/{property}": {
+            "put": {
+                "tags": [
+                    "Favorites"
+                ],
+                "summary": "Idempotently add an active property",
+                "operationId": "addFavorite",
+                "x-laravel-route-name": "api.v1.favorites.store",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/PropertyId"
+                    }
+                ],
+                "security": [
+                    {
+                        "bearerAuth": [
+                            "client"
+                        ]
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Favorite state is true",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/FavoriteEnvelope"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Favorites"
+                ],
+                "summary": "Idempotently remove an active property",
+                "operationId": "removeFavorite",
+                "x-laravel-route-name": "api.v1.favorites.destroy",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/PropertyId"
+                    }
+                ],
+                "security": [
+                    {
+                        "bearerAuth": [
+                            "client"
+                        ]
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Favorite state is false",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/FavoriteEnvelope"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    }
+                }
+            }
+        },
+        "/newsletter-subscription": {
+            "get": {
+                "tags": [
+                    "Newsletter"
+                ],
+                "summary": "Get newsletter subscription",
+                "operationId": "getNewsletterSubscription",
+                "x-laravel-route-name": "api.v1.newsletter.show",
+                "security": [
+                    {
+                        "bearerAuth": [
+                            "client"
+                        ]
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Subscription data or null",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GenericDataEnvelope"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Newsletter"
+                ],
+                "summary": "Create or update newsletter subscription",
+                "description": "The submitted email must match the authenticated account email.",
+                "operationId": "updateNewsletterSubscription",
+                "x-laravel-route-name": "api.v1.newsletter.update",
+                "security": [
+                    {
+                        "bearerAuth": [
+                            "client"
+                        ]
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "email"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Subscription data",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GenericDataEnvelope"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationFailed"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Newsletter"
+                ],
+                "summary": "Remove newsletter subscription",
+                "operationId": "deleteNewsletterSubscription",
+                "x-laravel-route-name": "api.v1.newsletter.destroy",
+                "security": [
+                    {
+                        "bearerAuth": [
+                            "client"
+                        ]
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Subscription removed",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GenericDataEnvelope"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "scheme": "bearer",
+                "bearerFormat": "Sanctum personal access token",
+                "description": "30-day per-device token with the client ability."
+            }
+        },
+        "parameters": {
+            "Locale": {
+                "name": "locale",
+                "in": "query",
+                "description": "Response locale; X-Locale and Accept-Language are alternatives.",
+                "schema": {
+                    "type": "string",
+                    "enum": [
+                        "en",
+                        "my",
+                        "th",
+                        "zh"
+                    ],
+                    "default": "en"
+                }
+            },
+            "Layout": {
+                "name": "layout",
+                "in": "query",
+                "schema": {
+                    "type": "string",
+                    "enum": [
+                        "guest",
+                        "guest_v2"
+                    ]
+                }
+            },
+            "Slug": {
+                "name": "slug",
+                "in": "path",
+                "required": true,
+                "schema": {
+                    "type": "string"
+                }
+            },
+            "Code": {
+                "name": "code",
+                "in": "path",
+                "required": true,
+                "schema": {
+                    "type": "string"
+                }
+            },
+            "PropertyId": {
+                "name": "property",
+                "in": "path",
+                "required": true,
+                "description": "Property ULID",
+                "schema": {
+                    "type": "string",
+                    "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"
+                }
+            },
+            "Q": {
+                "name": "q",
+                "in": "query",
+                "description": "Name, address, or property-code search",
+                "schema": {
+                    "type": "string",
+                    "maxLength": 120
+                }
+            },
+            "ListingType": {
+                "name": "listing_type",
+                "in": "query",
+                "schema": {
+                    "type": "string",
+                    "enum": [
+                        "sale",
+                        "rent",
+                        "both"
+                    ]
+                }
+            },
+            "PropertyType": {
+                "name": "property_type",
+                "in": "query",
+                "schema": {
+                    "type": "string",
+                    "enum": [
+                        "condo",
+                        "house",
+                        "apartment",
+                        "townhouse",
+                        "villa",
+                        "land",
+                        "commercial",
+                        "off-plan",
+                        "project"
+                    ]
+                }
+            },
+            "ProjectStatus": {
+                "name": "project_status",
+                "in": "query",
+                "schema": {
+                    "type": "string",
+                    "enum": [
+                        "under_construction",
+                        "completed",
+                        "units_available",
+                        "units_unavailable"
+                    ]
+                }
+            },
+            "ProvinceCode": {
+                "name": "p_code",
+                "in": "query",
+                "schema": {
+                    "type": "string"
+                }
+            },
+            "DistrictCode": {
+                "name": "d_code",
+                "in": "query",
+                "description": "Requires p_code and must belong to it.",
+                "schema": {
+                    "type": "string"
+                }
+            },
+            "SubdistrictCode": {
+                "name": "s_code",
+                "in": "query",
+                "description": "Requires d_code and must belong to it.",
+                "schema": {
+                    "type": "string"
+                }
+            },
+            "MinPrice": {
+                "name": "min_price",
+                "in": "query",
+                "schema": {
+                    "type": "number",
+                    "minimum": 0
+                }
+            },
+            "MaxPrice": {
+                "name": "max_price",
+                "in": "query",
+                "schema": {
+                    "type": "number",
+                    "minimum": 0
+                }
+            },
+            "MinBedrooms": {
+                "name": "min_bedrooms",
+                "in": "query",
+                "schema": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 20
+                }
+            },
+            "MinBathrooms": {
+                "name": "min_bathrooms",
+                "in": "query",
+                "schema": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 20
+                }
+            },
+            "FacilityIds": {
+                "name": "facility_ids[]",
+                "in": "query",
+                "description": "Repeat for AND-matched facilities.",
+                "schema": {
+                    "type": "array",
+                    "maxItems": 30,
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "style": "form",
+                "explode": true
+            },
+            "QuickResidential": {
+                "name": "quick_all_residential",
+                "in": "query",
+                "schema": {
+                    "type": "boolean",
+                    "default": true
+                }
+            },
+            "QuickNearSchool": {
+                "name": "quick_near_school",
+                "in": "query",
+                "schema": {
+                    "type": "boolean",
+                    "default": false
+                }
+            },
+            "QuickBudget": {
+                "name": "quick_budget",
+                "in": "query",
+                "description": "Sale/both <= 15m THB; rent <= 15k THB.",
+                "schema": {
+                    "type": "boolean",
+                    "default": false
+                }
+            },
+            "QuickCondominium": {
+                "name": "quick_condominium",
+                "in": "query",
+                "schema": {
+                    "type": "boolean",
+                    "default": false
+                }
+            },
+            "QuickSustainable": {
+                "name": "quick_sustainable_living",
+                "in": "query",
+                "schema": {
+                    "type": "boolean",
+                    "default": false
+                }
+            },
+            "QuickPetFriendly": {
+                "name": "quick_pet_friendly",
+                "in": "query",
+                "schema": {
+                    "type": "boolean",
+                    "default": false
+                }
+            },
+            "Sort": {
+                "name": "sort",
+                "in": "query",
+                "schema": {
+                    "type": "string",
+                    "enum": [
+                        "newest",
+                        "price_asc",
+                        "price_desc"
+                    ],
+                    "default": "newest"
+                }
+            },
+            "Page": {
+                "name": "page",
+                "in": "query",
+                "schema": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "default": 1
+                }
+            },
+            "PerPage": {
+                "name": "per_page",
+                "in": "query",
+                "schema": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 100
+                }
+            }
+        },
+        "responses": {
+            "Unauthorized": {
+                "description": "Bearer token missing, invalid, or expired",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/Error"
+                        },
+                        "examples": {
+                            "missing": {
+                                "value": {
+                                    "message": "Authentication is required.",
+                                    "code": "UNAUTHENTICATED"
+                                }
+                            },
+                            "invalid": {
+                                "value": {
+                                    "message": "The supplied bearer token is invalid or expired.",
+                                    "code": "INVALID_TOKEN"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "NotFound": {
+                "description": "Resource absent or hidden by active/published visibility",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/Error"
+                        },
+                        "example": {
+                            "message": "The requested resource was not found.",
+                            "code": "NOT_FOUND"
+                        }
+                    }
+                }
+            },
+            "ValidationFailed": {
+                "description": "Field validation failed",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/Error"
+                        },
+                        "example": {
+                            "message": "The given data was invalid.",
+                            "code": "VALIDATION_FAILED",
+                            "errors": {
+                                "email": [
+                                    "The email field must be a valid email address."
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            "RateLimited": {
+                "description": "Rate limit exceeded",
+                "headers": {
+                    "Retry-After": {
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    "X-RateLimit-Limit": {
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    "X-RateLimit-Remaining": {
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                },
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/Error"
+                        },
+                        "example": {
+                            "message": "Too many requests. Please try again later.",
+                            "code": "RATE_LIMITED"
+                        }
+                    }
+                }
+            }
+        },
+        "schemas": {
+            "Error": {
+                "type": "object",
+                "required": [
+                    "message",
+                    "code"
+                ],
+                "properties": {
+                    "message": {
+                        "type": "string"
+                    },
+                    "code": {
+                        "type": "string"
+                    },
+                    "errors": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "GenericDataEnvelope": {
+                "type": "object",
+                "required": [
+                    "data"
+                ],
+                "properties": {
+                    "data": []
+                }
+            },
+            "ServiceEnvelope": {
+                "type": "object",
+                "required": [
+                    "data"
+                ],
+                "properties": {
+                    "data": {
+                        "type": "object",
+                        "required": [
+                            "name",
+                            "api_version",
+                            "base_url",
+                            "documentation"
+                        ],
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            },
+                            "api_version": {
+                                "type": "string"
+                            },
+                            "base_url": {
+                                "type": "string",
+                                "format": "uri"
+                            },
+                            "documentation": {
+                                "type": "object",
+                                "additionalProperties": {
+                                    "type": "string",
+                                    "format": "uri"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "BootstrapEnvelope": {
+                "type": "object",
+                "required": [
+                    "data"
+                ],
+                "properties": {
+                    "data": {
+                        "type": "object",
+                        "required": [
+                            "app",
+                            "features",
+                            "locales",
+                            "layouts",
+                            "navigation",
+                            "footer",
+                            "authentication"
+                        ],
+                        "properties": {
+                            "app": {
+                                "type": "object"
+                            },
+                            "features": {
+                                "type": "object",
+                                "additionalProperties": {
+                                    "type": "boolean"
+                                }
+                            },
+                            "locales": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "layouts": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "navigation": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object"
+                                }
+                            },
+                            "footer": {
+                                "type": "object"
+                            },
+                            "authentication": {
+                                "type": "object"
+                            }
+                        }
+                    }
+                }
+            },
+            "HomeEnvelope": {
+                "type": "object",
+                "required": [
+                    "data"
+                ],
+                "properties": {
+                    "data": {
+                        "type": "object",
+                        "required": [
+                            "layout",
+                            "property_sections"
+                        ],
+                        "properties": {
+                            "layout": {
+                                "type": "string",
+                                "enum": [
+                                    "guest",
+                                    "guest_v2"
+                                ]
+                            },
+                            "hero": {
+                                "$ref": "#/components/schemas/Media",
+                                "type": [
+                                    "object",
+                                    "null"
+                                ]
+                            },
+                            "cta": {
+                                "$ref": "#/components/schemas/Media",
+                                "type": [
+                                    "object",
+                                    "null"
+                                ]
+                            },
+                            "location_media": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/Media"
+                                }
+                            },
+                            "testimonials": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object"
+                                }
+                            },
+                            "top_agents": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/Agent"
+                                }
+                            },
+                            "property_sections": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "required": [
+                                        "key",
+                                        "title_key",
+                                        "properties"
+                                    ],
+                                    "properties": {
+                                        "key": {
+                                            "type": "string"
+                                        },
+                                        "title_key": {
+                                            "type": "string"
+                                        },
+                                        "properties": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/PropertySummary"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "Media": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "type",
+                    "url",
+                    "order"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string"
+                    },
+                    "url": {
+                        "type": "string",
+                        "format": "uri"
+                    },
+                    "label": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "location_codes": {
+                        "type": "object"
+                    },
+                    "order": {
+                        "type": "integer"
+                    }
+                }
+            },
+            "Money": {
+                "type": "object",
+                "required": [
+                    "currency"
+                ],
+                "properties": {
+                    "current": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "pattern": "^[0-9]+\\.[0-9]{2}$"
+                    },
+                    "sale": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "pattern": "^[0-9]+\\.[0-9]{2}$"
+                    },
+                    "rent": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "pattern": "^[0-9]+\\.[0-9]{2}$"
+                    },
+                    "currency": {
+                        "type": "string",
+                        "pattern": "^[A-Z]{3}$",
+                        "example": "THB"
+                    }
+                }
+            },
+            "PropertySummary": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "slug",
+                    "name",
+                    "property_type",
+                    "listing_type",
+                    "prices",
+                    "location",
+                    "primary_image_url",
+                    "is_favorited",
+                    "detail_url"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "slug": {
+                        "type": "string"
+                    },
+                    "property_code": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "property_type": {
+                        "type": "string"
+                    },
+                    "listing_type": {
+                        "type": "string"
+                    },
+                    "prices": {
+                        "$ref": "#/components/schemas/Money"
+                    },
+                    "bedrooms": {
+                        "type": "integer"
+                    },
+                    "bathrooms": {
+                        "type": "integer"
+                    },
+                    "size_sqm": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "address": {
+                        "type": "string"
+                    },
+                    "location": {
+                        "type": "object"
+                    },
+                    "primary_image_url": {
+                        "type": "string",
+                        "format": "uri"
+                    },
+                    "is_favorited": {
+                        "type": "boolean"
+                    },
+                    "view_count": {
+                        "type": "integer"
+                    },
+                    "detail_url": {
+                        "type": "string",
+                        "format": "uri"
+                    },
+                    "created_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    }
+                }
+            },
+            "PropertyDetail": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/PropertySummary"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "detail": {
+                                "type": [
+                                    "object",
+                                    "null"
+                                ]
+                            },
+                            "images": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object"
+                                }
+                            },
+                            "facilities": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object"
+                                }
+                            },
+                            "nearby_locations": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object"
+                                }
+                            },
+                            "contacts": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object"
+                                }
+                            },
+                            "agents": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/Agent"
+                                }
+                            },
+                            "project": {
+                                "type": [
+                                    "object",
+                                    "null"
+                                ]
+                            },
+                            "seo": {
+                                "type": "object"
+                            },
+                            "related_properties": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/PropertySummary"
+                                }
+                            },
+                            "related_articles": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/ArticleSummary"
+                                }
+                            }
+                        }
+                    }
+                ]
+            },
+            "PropertyMarker": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "slug",
+                    "name",
+                    "latitude",
+                    "longitude",
+                    "currency",
+                    "primary_image_url",
+                    "is_favorited",
+                    "detail_url"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "slug": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "latitude": {
+                        "type": "number"
+                    },
+                    "longitude": {
+                        "type": "number"
+                    },
+                    "price": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "currency": {
+                        "type": "string"
+                    },
+                    "primary_image_url": {
+                        "type": "string",
+                        "format": "uri"
+                    },
+                    "is_favorited": {
+                        "type": "boolean"
+                    },
+                    "detail_url": {
+                        "type": "string",
+                        "format": "uri"
+                    }
+                }
+            },
+            "PaginationLinks": {
+                "type": "object",
+                "required": [
+                    "first",
+                    "last",
+                    "prev",
+                    "next"
+                ],
+                "properties": {
+                    "first": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "last": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "prev": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "next": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    }
+                }
+            },
+            "PaginationMeta": {
+                "type": "object",
+                "required": [
+                    "current_page",
+                    "from",
+                    "last_page",
+                    "path",
+                    "per_page",
+                    "to",
+                    "total"
+                ],
+                "properties": {
+                    "current_page": {
+                        "type": "integer"
+                    },
+                    "from": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "last_page": {
+                        "type": "integer"
+                    },
+                    "path": {
+                        "type": "string"
+                    },
+                    "per_page": {
+                        "type": "integer"
+                    },
+                    "to": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "total": {
+                        "type": "integer"
+                    },
+                    "links": {
+                        "type": "array",
+                        "items": {
+                            "type": "object"
+                        }
+                    }
+                }
+            },
+            "PropertyPage": {
+                "type": "object",
+                "required": [
+                    "data",
+                    "links",
+                    "meta"
+                ],
+                "properties": {
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/PropertySummary"
+                        }
+                    },
+                    "links": {
+                        "$ref": "#/components/schemas/PaginationLinks"
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                }
+            },
+            "EnquiryInput": {
+                "type": "object",
+                "required": [
+                    "name",
+                    "email",
+                    "phone"
+                ],
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "minLength": 3,
+                        "maxLength": 120
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email"
+                    },
+                    "phone": {
+                        "type": "string",
+                        "maxLength": 50
+                    },
+                    "message": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "maxLength": 2000
+                    },
+                    "agent_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    }
+                }
+            },
+            "ViewResultEnvelope": {
+                "type": "object",
+                "required": [
+                    "data"
+                ],
+                "properties": {
+                    "data": {
+                        "type": "object",
+                        "required": [
+                            "recorded"
+                        ],
+                        "properties": {
+                            "recorded": {
+                                "type": "boolean"
+                            },
+                            "view_count": {
+                                "type": "integer"
+                            },
+                            "views_count": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                }
+            },
+            "Location": {
+                "type": "object",
+                "required": [
+                    "code",
+                    "name"
+                ],
+                "properties": {
+                    "code": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "province_code": {
+                        "type": "string"
+                    },
+                    "district_code": {
+                        "type": "string"
+                    },
+                    "postal_code": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    }
+                }
+            },
+            "LocationListEnvelope": {
+                "type": "object",
+                "required": [
+                    "data"
+                ],
+                "properties": {
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Location"
+                        }
+                    }
+                }
+            },
+            "ArticleSummary": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "slug",
+                    "title",
+                    "excerpt",
+                    "read_time_minutes",
+                    "views_count",
+                    "published_at",
+                    "detail_url"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "slug": {
+                        "type": "string"
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "author": {
+                        "type": "string"
+                    },
+                    "excerpt": {
+                        "type": "string"
+                    },
+                    "main_image_url": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "uri"
+                    },
+                    "read_time_minutes": {
+                        "type": "integer",
+                        "minimum": 1
+                    },
+                    "views_count": {
+                        "type": "integer"
+                    },
+                    "tags": {
+                        "type": "array",
+                        "items": {
+                            "type": "object"
+                        }
+                    },
+                    "published_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "detail_url": {
+                        "type": "string",
+                        "format": "uri"
+                    }
+                }
+            },
+            "ArticleDetail": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/ArticleSummary"
+                    },
+                    {
+                        "type": "object",
+                        "required": [
+                            "content"
+                        ],
+                        "properties": {
+                            "content": {
+                                "type": "string"
+                            },
+                            "agent": {
+                                "oneOf": [
+                                    {
+                                        "$ref": "#/components/schemas/Agent"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ]
+                            },
+                            "popular_readings": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/ArticleSummary"
+                                }
+                            },
+                            "more_articles": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/ArticleSummary"
+                                }
+                            },
+                            "suggested_properties": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/PropertySummary"
+                                }
+                            }
+                        }
+                    }
+                ]
+            },
+            "ArticlePage": {
+                "type": "object",
+                "required": [
+                    "data",
+                    "links",
+                    "meta"
+                ],
+                "properties": {
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ArticleSummary"
+                        }
+                    },
+                    "links": {
+                        "$ref": "#/components/schemas/PaginationLinks"
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                }
+            },
+            "Agent": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "name"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email"
+                    },
+                    "phone": {
+                        "type": "string"
+                    },
+                    "position": {
+                        "type": "string"
+                    },
+                    "biography": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "experience": {
+                        "type": "integer"
+                    },
+                    "rating": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "image_url": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "uri"
+                    },
+                    "contacts": {
+                        "type": "array",
+                        "items": {
+                            "type": "object"
+                        }
+                    }
+                }
+            },
+            "LegalEnvelope": {
+                "type": "object",
+                "required": [
+                    "data"
+                ],
+                "properties": {
+                    "data": {
+                        "type": "object",
+                        "required": [
+                            "type",
+                            "source",
+                            "source_format",
+                            "rendered_html"
+                        ],
+                        "properties": {
+                            "type": {
+                                "type": "string"
+                            },
+                            "source": {
+                                "type": "string"
+                            },
+                            "source_format": {
+                                "type": "string",
+                                "enum": [
+                                    "html",
+                                    "markdown"
+                                ]
+                            },
+                            "rendered_html": {
+                                "type": "string"
+                            },
+                            "updated_at": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "format": "date-time"
+                            }
+                        }
+                    }
+                }
+            },
+            "LanguageEnvelope": {
+                "type": "object",
+                "required": [
+                    "data"
+                ],
+                "properties": {
+                    "data": {
+                        "type": "object",
+                        "required": [
+                            "locale",
+                            "layout",
+                            "fallback_locale",
+                            "fallback_applied",
+                            "missing_keys",
+                            "dictionary"
+                        ],
+                        "properties": {
+                            "locale": {
+                                "type": "string"
+                            },
+                            "layout": {
+                                "type": "string"
+                            },
+                            "fallback_locale": {
+                                "const": "en"
+                            },
+                            "fallback_applied": {
+                                "type": "boolean"
+                            },
+                            "missing_keys": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "dictionary": {
+                                "type": "object",
+                                "additionalProperties": true
+                            }
+                        }
+                    }
+                }
+            },
+            "ChatInput": {
+                "type": "object",
+                "required": [
+                    "message"
+                ],
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "maxLength": 2000
+                    },
+                    "conversation": {
+                        "type": "array",
+                        "maxItems": 10,
+                        "items": {
+                            "type": "object",
+                            "required": [
+                                "type",
+                                "text"
+                            ],
+                            "properties": {
+                                "type": {
+                                    "type": "string",
+                                    "enum": [
+                                        "user",
+                                        "assistant"
+                                    ]
+                                },
+                                "text": {
+                                    "type": "string",
+                                    "maxLength": 2000
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "ChatEnvelope": {
+                "type": "object",
+                "required": [
+                    "data"
+                ],
+                "properties": {
+                    "data": {
+                        "type": "object",
+                        "required": [
+                            "type",
+                            "items"
+                        ],
+                        "properties": {
+                            "type": {
+                                "type": "string",
+                                "enum": [
+                                    "text",
+                                    "property",
+                                    "location",
+                                    "subdistrict",
+                                    "agent"
+                                ]
+                            },
+                            "text": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "items": {
+                                "type": "array",
+                                "items": []
+                            }
+                        }
+                    }
+                }
+            },
+            "RegisterInput": {
+                "type": "object",
+                "required": [
+                    "name",
+                    "email",
+                    "password",
+                    "password_confirmation",
+                    "device_name"
+                ],
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "maxLength": 255
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email"
+                    },
+                    "password": {
+                        "type": "string",
+                        "format": "password"
+                    },
+                    "password_confirmation": {
+                        "type": "string",
+                        "format": "password"
+                    },
+                    "device_name": {
+                        "type": "string",
+                        "maxLength": 120
+                    }
+                }
+            },
+            "LoginInput": {
+                "type": "object",
+                "required": [
+                    "email",
+                    "password",
+                    "device_name"
+                ],
+                "properties": {
+                    "email": {
+                        "type": "string",
+                        "format": "email"
+                    },
+                    "password": {
+                        "type": "string",
+                        "format": "password"
+                    },
+                    "device_name": {
+                        "type": "string",
+                        "maxLength": 120
+                    }
+                }
+            },
+            "Token": {
+                "type": "object",
+                "required": [
+                    "access_token",
+                    "token_type",
+                    "expires_at",
+                    "device_name"
+                ],
+                "properties": {
+                    "access_token": {
+                        "type": "string"
+                    },
+                    "token_type": {
+                        "const": "Bearer"
+                    },
+                    "expires_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "device_name": {
+                        "type": "string"
+                    }
+                }
+            },
+            "User": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "name",
+                    "email",
+                    "email_verified"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email"
+                    },
+                    "email_verified": {
+                        "type": "boolean"
+                    },
+                    "email_verified_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "avatar_url": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "uri"
+                    },
+                    "created_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    }
+                }
+            },
+            "UserEnvelope": {
+                "type": "object",
+                "required": [
+                    "data"
+                ],
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/User"
+                    }
+                }
+            },
+            "AuthEnvelope": {
+                "type": "object",
+                "required": [
+                    "data"
+                ],
+                "properties": {
+                    "data": {
+                        "type": "object",
+                        "required": [
+                            "user",
+                            "token"
+                        ],
+                        "properties": {
+                            "user": {
+                                "$ref": "#/components/schemas/User"
+                            },
+                            "token": {
+                                "$ref": "#/components/schemas/Token"
+                            },
+                            "verification_required": {
+                                "type": "boolean"
+                            }
+                        }
+                    }
+                }
+            },
+            "FavoriteEnvelope": {
+                "type": "object",
+                "required": [
+                    "data"
+                ],
+                "properties": {
+                    "data": {
+                        "type": "object",
+                        "required": [
+                            "property_id",
+                            "is_favorited"
+                        ],
+                        "properties": {
+                            "property_id": {
+                                "type": "string"
+                            },
+                            "is_favorited": {
+                                "type": "boolean"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

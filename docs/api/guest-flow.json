@@ -1,0 +1,321 @@
+{
+  "version": "1.0.0",
+  "title": "Prime Property Guest Frontend Flow",
+  "purpose": "Implementation guide for third-party web, mobile, and agent-built frontends that reproduce the public discovery and account experience without depending on Blade or Livewire internals.",
+  "global_rules": {
+    "api_base": "/api/v1",
+    "authentication": "Bearer tokens only for v1. Tokens expire after 30 days and are scoped to the client ability.",
+    "visibility": "Every property returned by v1 has an active property detail. Every article returned by v1 is published.",
+    "localization": "Use /languages for discovery and /languages/{locale}?layout={layout} for a fallback-complete dictionary.",
+    "layouts": {
+      "guest": "Classic layout. Home omits the near-school section and uses a compact section treatment.",
+      "guest_v2": "Newer editorial layout. Home includes all default sections, including near-school, and uses section dividers. Data semantics are otherwise identical."
+    },
+    "response_shape": "Single resources use data; paginated resources use data, links, and meta; errors use message, code, and optional errors."
+  },
+  "flows": [
+    {
+      "name": "Application shell",
+      "purpose": "Initialize branding, feature availability, locale/layout choices, navigation, footer contacts, and authentication affordances before rendering a page.",
+      "elements": [
+        "Brand and primary navigation",
+        "Locale switcher",
+        "Sign-in or profile entry",
+        "Footer social links and phone/email contacts",
+        "Cookie/privacy entry points",
+        "Optional AI chat launcher"
+      ],
+      "transitions": [
+        "Navigation opens home, property catalog, articles, or legal content",
+        "Locale/layout changes refresh dictionary and page data",
+        "Profile entry opens login for guests or profile for token users"
+      ],
+      "authentication": "Optional. Supplying a valid bearer token enables user-aware data; an invalid supplied token is rejected.",
+      "api_dependencies": ["GET /bootstrap", "GET /languages", "GET /languages/{locale}"],
+      "states": "Render structural defaults if optional media/contact arrays are empty. On bootstrap failure, show a retry state and avoid guessing feature availability.",
+      "layout_difference": "Both layouts share the same shell data; presentation and translation dictionary differ."
+    },
+    {
+      "name": "Home discovery",
+      "purpose": "Introduce the marketplace and move visitors into search, curated listings, locations, agents, testimonials, or enquiry-oriented content.",
+      "elements": [
+        "Hero media and search controls",
+        "Property-type and listing-intent controls",
+        "Curated active-property sections",
+        "Location media",
+        "Top agents",
+        "Testimonials",
+        "Call-to-action media"
+      ],
+      "transitions": [
+        "Hero search opens the property catalog with snake-case filters",
+        "Property cards open property detail",
+        "Agent/contact controls begin external contact actions"
+      ],
+      "authentication": "Optional; valid tokens add is_favorited state.",
+      "api_dependencies": ["GET /home", "GET /properties/options", "GET /locations/provinces"],
+      "states": "Hide empty optional sections rather than displaying blank carousels. Keep search available if editorial media is absent.",
+      "layout_difference": "guest uses recommendations, latest projects, near MRT, luxury, and budget sections. guest_v2 also includes near-school and uses divided editorial sections."
+    },
+    {
+      "name": "Property filters and search",
+      "purpose": "Find active properties using text, intent, type, project status, hierarchical location, price, rooms, facilities, and quick filters.",
+      "elements": [
+        "Search input",
+        "Sale/rent selector",
+        "Property and project status selectors",
+        "Province/district/subdistrict selectors",
+        "Price and room controls",
+        "Facility multi-select",
+        "Residential, near-school, budget, condominium, sustainable, and pet-friendly quick filters",
+        "Sort and pagination"
+      ],
+      "transitions": [
+        "Filter changes reload the paginated collection",
+        "Selecting a result opens property detail",
+        "Map action opens the same result set geographically"
+      ],
+      "authentication": "Optional; valid tokens add is_favorited state and may expose favorite controls.",
+      "api_dependencies": [
+        "GET /properties",
+        "GET /properties/options",
+        "GET /locations/provinces",
+        "GET /locations/provinces/{code}/districts",
+        "GET /locations/districts/{code}/subdistricts"
+      ],
+      "states": "Show a clear no-results state with controls to broaden location, budget, or quick filters. Preserve applied filters after validation/server errors.",
+      "layout_difference": "Behavior and API parameters are identical; control composition differs visually."
+    },
+    {
+      "name": "Property map",
+      "purpose": "Display up to 500 active matching properties as geographic markers, optionally constrained by viewport bounds.",
+      "elements": [
+        "Map viewport",
+        "Price markers",
+        "Selected-property preview",
+        "List/map switch",
+        "Bounds-aware refresh"
+      ],
+      "transitions": [
+        "Moving the viewport requests bounded markers",
+        "Selecting a marker opens a preview",
+        "Preview opens property detail"
+      ],
+      "authentication": "Optional; valid tokens add is_favorited state.",
+      "api_dependencies": ["GET /properties/map"],
+      "states": "If coordinates are unavailable or no markers match, retain the map and offer a return to list/search. Treat mapping-provider failures separately from API failures.",
+      "layout_difference": "No data-contract difference."
+    },
+    {
+      "name": "Property detail, enquiry, and favorites",
+      "purpose": "Explain one active listing completely and support conversion through agents, persisted enquiries, view tracking, and saved favorites.",
+      "elements": [
+        "Gallery and core facts",
+        "Decimal price and currency",
+        "Project and units",
+        "Facilities and nearby locations",
+        "Map and address",
+        "Agents and contact channels",
+        "SEO metadata",
+        "Related properties and articles",
+        "Enquiry form",
+        "Favorite control"
+      ],
+      "transitions": [
+        "Opening a detail records a view through the explicit view endpoint",
+        "Submitting the form creates an enquiry",
+        "Favorite prompts login when no token is available",
+        "Related cards continue discovery"
+      ],
+      "authentication": "Reading and enquiry are public; favorite writes require a bearer token. Logged-in enquiry records the user automatically.",
+      "api_dependencies": [
+        "GET /properties/{slug}",
+        "POST /properties/{slug}/views",
+        "POST /properties/{slug}/enquiries",
+        "PUT /favorites/{property}",
+        "DELETE /favorites/{property}"
+      ],
+      "states": "404 means the listing is absent or no longer active. Keep submitted enquiry values on validation failure. Treat idempotent favorite responses as authoritative.",
+      "layout_difference": "Same content contract; gallery, agent selector, and section arrangement differ."
+    },
+    {
+      "name": "Article index",
+      "purpose": "Browse published editorial content, optionally scoped by a tag, with read-time and popularity context.",
+      "elements": [
+        "Article cards",
+        "Tag filters",
+        "Image, author, excerpt, read time, and publication date",
+        "Pagination"
+      ],
+      "transitions": ["Tag selection reloads the index", "Article card opens article detail"],
+      "authentication": "Public.",
+      "api_dependencies": ["GET /articles", "GET /article-tags"],
+      "states": "Show an empty editorial state for tags with no current publications; invalid tags produce validation errors.",
+      "layout_difference": "Same content contract; card density and typography differ."
+    },
+    {
+      "name": "Article detail",
+      "purpose": "Present a published article and continue discovery through popular readings, newer articles, and suggested active properties.",
+      "elements": [
+        "Title and publication metadata",
+        "Main image",
+        "Source content",
+        "Tags and author/agent",
+        "Popular readings",
+        "More articles",
+        "Suggested properties"
+      ],
+      "transitions": [
+        "Opening records a view through the explicit endpoint",
+        "Tags return to filtered index",
+        "Suggested listings open property detail"
+      ],
+      "authentication": "Public; a valid optional token can be sent to view tracking.",
+      "api_dependencies": ["GET /articles/{slug}", "POST /articles/{slug}/views"],
+      "states": "404 means missing or unpublished. Hide empty optional related groups.",
+      "layout_difference": "No data-contract difference."
+    },
+    {
+      "name": "Legal pages",
+      "purpose": "Render administrator-managed privacy and terms content while preserving the source for clients that need their own renderer.",
+      "elements": [
+        "Page title",
+        "Rendered HTML",
+        "Source format and source content",
+        "Last-updated timestamp"
+      ],
+      "transitions": ["Shell/footer links open the corresponding legal document"],
+      "authentication": "Public.",
+      "api_dependencies": ["GET /legal/privacy-policy", "GET /legal/terms-and-conditions"],
+      "states": "An empty source is valid and should render an unavailable-content message rather than fabricated policy text.",
+      "layout_difference": "Only presentation differs."
+    },
+    {
+      "name": "Registration, login, and verification",
+      "purpose": "Create or authenticate a client account, issue a device-scoped 30-day token, and verify email using a six-digit code.",
+      "elements": [
+        "Name/email/password registration",
+        "Email/password login",
+        "Google access-token login",
+        "Device name",
+        "Verification code entry and resend",
+        "Forgot/reset password"
+      ],
+      "transitions": [
+        "Registration immediately returns a token and queues a code",
+        "Login/Google returns a token",
+        "Verification updates user state",
+        "Password reset revokes all existing tokens and returns to login"
+      ],
+      "authentication": "Registration/login/reset are public. Verification and resend require a bearer token. Unverified token users retain normal client access.",
+      "api_dependencies": [
+        "POST /auth/register",
+        "POST /auth/login",
+        "POST /auth/google",
+        "POST /auth/email/verify",
+        "POST /auth/email/resend",
+        "POST /auth/forgot-password",
+        "POST /auth/reset-password"
+      ],
+      "states": "Map field errors directly to controls. Forgot-password always gives a neutral accepted response. Expired/incorrect codes remain recoverable through resend.",
+      "layout_difference": "API flow is identical. Web LoginResponse redirects are session-specific and must not be used by API clients."
+    },
+    {
+      "name": "Profile and token lifecycle",
+      "purpose": "Show and edit account identity, upload/remove avatar, and revoke the current or all device tokens.",
+      "elements": [
+        "Name",
+        "Email and verification state",
+        "Avatar",
+        "Current-device logout",
+        "All-device logout"
+      ],
+      "transitions": [
+        "Changing email clears verification and queues a new code",
+        "Avatar upload uses multipart form data",
+        "Token revocation returns to signed-out shell"
+      ],
+      "authentication": "Bearer token with client ability required.",
+      "api_dependencies": [
+        "GET /me",
+        "PATCH /me",
+        "POST /me/avatar",
+        "DELETE /me/avatar",
+        "DELETE /auth/token",
+        "DELETE /auth/tokens"
+      ],
+      "states": "After email change, visibly prompt reverification. A revoked/expired token returns 401 and should clear local credentials.",
+      "layout_difference": "No API behavior difference."
+    },
+    {
+      "name": "Favorites",
+      "purpose": "Maintain a user-specific active-property shortlist with idempotent writes.",
+      "elements": [
+        "Paginated favorite property cards",
+        "Remove actions",
+        "Empty shortlist call-to-action"
+      ],
+      "transitions": [
+        "Cards open property detail",
+        "Remove updates local state from the API response",
+        "Empty call-to-action returns to search"
+      ],
+      "authentication": "Bearer token with client ability required.",
+      "api_dependencies": [
+        "GET /favorites",
+        "PUT /favorites/{property}",
+        "DELETE /favorites/{property}"
+      ],
+      "states": "Inactive properties are omitted and cannot be added. Repeated PUT/DELETE calls succeed with the same final state.",
+      "layout_difference": "No API behavior difference."
+    },
+    {
+      "name": "Newsletter",
+      "purpose": "Read, create/update, or remove the authenticated user\u2019s newsletter subscription.",
+      "elements": [
+        "Subscription status",
+        "Account email",
+        "Subscribe/update action",
+        "Unsubscribe action"
+      ],
+      "transitions": [
+        "Subscribe writes the account email",
+        "Unsubscribe returns a false subscribed state"
+      ],
+      "authentication": "Bearer token with client ability required. Submitted email must match the account email.",
+      "api_dependencies": [
+        "GET /newsletter-subscription",
+        "PUT /newsletter-subscription",
+        "DELETE /newsletter-subscription"
+      ],
+      "states": "A null data payload means no subscription. Email mismatch is a field validation error.",
+      "layout_difference": "No API behavior difference."
+    },
+    {
+      "name": "AI property chat",
+      "purpose": "Answer Thailand real-estate questions and return machine-renderable property, location, subdistrict, or agent results without Blade HTML.",
+      "elements": [
+        "Message composer",
+        "Up to ten recent user/assistant turns",
+        "Text response",
+        "Typed result cards",
+        "Rate-limit feedback"
+      ],
+      "transitions": [
+        "Typed property results open property detail",
+        "Location/subdistrict results start a filtered search",
+        "Agent results expose contact actions"
+      ],
+      "authentication": "Public with optional bearer token. Limit is eight questions per hour keyed by user or IP/user-agent.",
+      "api_dependencies": ["POST /chat"],
+      "states": "429 shows retry guidance. 503 indicates AI/service unavailability and should preserve the conversation for retry. Empty result text should invite broader criteria.",
+      "layout_difference": "No API data difference; each client renders the typed result objects in its own visual language."
+    }
+  ],
+  "implementation_notes": [
+    "The root web route uses App\\Livewire\\Guest\\HomePage.",
+    "resources/views/welcome.blade.php is unused Laravel starter markup.",
+    "App\\Http\\Responses\\Auth\\LoginResponse remains web-session-specific.",
+    "Bot, Telegram, tag-search, old map-bounds, and web-authentication routes are intentionally outside v1."
+  ]
+}
