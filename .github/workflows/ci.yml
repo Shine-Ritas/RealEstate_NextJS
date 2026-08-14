@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Verify foundation
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PRIMEPROPERTY_API_URL: https://primeproperty.cfd/api/v1
+      PRIMEPROPERTY_SESSION_COOKIE: primeproperty_session
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Regenerate contract types
+        run: npm run api:types
+
+      - name: Verify generated contract is committed
+        run: git diff --exit-code -- docs/api/openapi.codegen.json src/lib/api/generated/schema.ts
+
+      - name: Run template and application checks
+        run: npm run verify

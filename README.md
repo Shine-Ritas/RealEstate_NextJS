@@ -2,6 +2,31 @@
 
 PrimeProperty is a Next.js App Router frontend foundation for the existing Laravel API. This phase contains the API contract, typed domain services, secure browser-to-backend integration, validation, caching policy, and tests. It intentionally contains no application design or production pages.
 
+This repository is designed to be published as a GitHub template. A generated repository starts ready for UI development against the implemented PrimeProperty services and same-origin BFF routes.
+
+## Start from the GitHub template
+
+For one shared PrimeProperty application, create **one** repository from the template, add the five developers to that repository, and have each developer clone it and work through branches and pull requests. This keeps one history and one integration branch.
+
+Create five repositories only when the developers need five independent experiments or deliverables. GitHub template repositories create independent histories, so those repositories cannot merge back into each other as ordinary branches.
+
+After creating a repository with GitHub's **Use this template** action:
+
+```bash
+git clone <generated-repository-url>
+cd <generated-repository>
+npm ci
+cp .env.example .env.local
+npm run verify
+npm run dev
+```
+
+Before assigning work, read:
+
+- `docs/github_template_workflow.md` for publishing the template and creating derived repositories.
+- `CONTRIBUTING.md` for the five-developer branch, review, and API-integration workflow.
+- `docs/ui_elements_guide.md` for the contract-supported UI inventory.
+
 ## Requirements
 
 - Node.js 22 or newer
@@ -11,12 +36,9 @@ PrimeProperty is a Next.js App Router frontend foundation for the existing Larav
 Install and verify the project:
 
 ```bash
-npm install
+npm ci
 cp .env.example .env.local
-npm run lint
-npm run typecheck
-npm run test
-npm run build
+npm run verify
 ```
 
 ## Environment

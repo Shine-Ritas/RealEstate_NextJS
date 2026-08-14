@@ -1,0 +1,54 @@
+name: User-facing UI feature
+description: Plan a contract-supported PrimeProperty page or user flow.
+title: "UI: "
+labels:
+  - ui
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use `docs/ui_elements_guide.md` and the implemented service layer as the source of truth. Do not add unsupported backend behavior.
+
+  - type: input
+    id: guide-section
+    attributes:
+      label: UI guide section
+      description: Name the matching page or functional component.
+      placeholder: Property Search
+    validations:
+      required: true
+
+  - type: textarea
+    id: outcome
+    attributes:
+      label: User outcome
+      description: What should the guest or authenticated client be able to accomplish?
+    validations:
+      required: true
+
+  - type: textarea
+    id: api
+    attributes:
+      label: API dependencies
+      description: List the existing service methods and BFF routes used by this work.
+      placeholder: properties.list(), GET /api/properties
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: states
+    attributes:
+      label: Required states
+      options:
+        - label: Loading and request cancellation where applicable
+        - label: Empty and optional-content absence
+        - label: Laravel 422 validation
+        - label: Authentication/session expiry where applicable
+        - label: Rate limit, network, and server errors
+        - label: Keyboard and responsive functional access
+
+  - type: textarea
+    id: exclusions
+    attributes:
+      label: Explicit exclusions or API gaps
+      description: Note anything the backend does not support so it is not invented in the UI.
